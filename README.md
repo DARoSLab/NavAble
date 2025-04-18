@@ -84,14 +84,16 @@ wget https://YOUR_SERVER/navable_sample_subset.zip
 unzip navable_sample_subset.zip
 ```
 
-## Experiments
+## 💻  Experiments
 
 We have provided an initial template for experimentation with the dataset on Object Detection and Segmentation using the YOLOv12 and SAM2.1 models.
 - The conversion scripts to adapt the datatset to the format required for the respective training task.
-- The Python notebook templates provided by Roboflow to finetune the dataset with. (Full Credit below)
+- The Python notebook templates provided by Roboflow to finetune the dataset with. [^1] [^2]
+
 Note: The eperiments were performed on an A100 GPU provided via Google Colab.
 
-James Gallagher. (Feb 19, 2025). How to Train a YOLOv12 Object Detection Model on a Custom Dataset. Roboflow Blog: https://blog.roboflow.com/train-yolov12-model/
-James Gallagher. (Nov 13, 2024). How to Fine-Tune SAM-2.1 on a Custom Dataset. Roboflow Blog: https://blog.roboflow.com/fine-tune-sam-2-1/
+[^1]:James Gallagher. (Feb 19, 2025). How to Train a YOLOv12 Object Detection Model on a Custom Dataset. Roboflow Blog: https://blog.roboflow.com/train-yolov12-model/
+
+[^2]:James Gallagher. (Nov 13, 2024). How to Fine-Tune SAM-2.1 on a Custom Dataset. Roboflow Blog: https://blog.roboflow.com/fine-tune-sam-2-1/
 
 
