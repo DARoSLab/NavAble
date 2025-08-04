@@ -15,7 +15,7 @@ Requirements:
 
 - In Content Browser, open the drone pawn inside Content/Airsim/BluePrints/BP_FlyingPawn.
 - Adjust the cameras angles if needed.
-- Disable shadow cast on all props and the drone pawn itself.
+- Disable 'Cast Shadow' on all props and the drone pawn itself.
 
 ### Modify the Script
 
