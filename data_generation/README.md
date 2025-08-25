@@ -14,7 +14,7 @@ Requirements:
 
 ### Configuring Drone Camera
 
-- In Content Browser, open the drone pawn inside `ContentBrowser/Airsim/Content/BluePrints/BP_FlyingPawn`.
+- In Content Browser, open the drone pawn inside `ContentBrowser/AirSim/Content/Blueprints/BP_FlyingPawn`.
 <img width="1163" height="366" alt="Image" src="https://github.com/user-attachments/assets/185906cf-6b1b-4237-ab1f-52a32caa2966" />
 
 - Adjust the cameras angles if needed.
