@@ -1,0 +1,111 @@
+import os
+import json
+
+import cv2
+import numpy as np
+from pycocotools import mask as maskUtils
+
+# Paths
+sam2_dir = r"D:\GuideDog Data\Synthetic Data\Set 5\SAM2.1_Dataset_refined"
+seg_dir = r"D:\GuideDog Data\Synthetic Data\seg\images_resized"
+output_dir = r"D:\GuideDog Data\Synthetic Data\seg\labels"
+
+for filename in os.listdir(sam2_dir):
+    if not filename.endswith(".json"):
+        continue
+
+    with open(os.path.join(sam2_dir, filename), 'r') as f:
+        data = json.load(f)
+
+    if len(data)!=0:
+        
+        image_info = data["image"]
+        annotations_info = data["annotations"][0]
+        img_width = image_info["width"]
+        img_height = image_info["height"]
+        object_area = annotations_info["area"]
+        object_color = annotations_info["object_color"]
+        file_name = image_info["file_name"]
+
+        if object_area >0:
+            # 1. Load your segmentation image (BGR) and convert to RGB
+            seg_path = os.path.join(seg_dir, file_name).replace("rgb.jpg", "segmentation.png")
+            bgr = cv2.imread(seg_path)
+            if bgr is None:
+                raise FileNotFoundError(f"Couldn’t load {seg_path}")
+            rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+
+            # 2. Create a binary mask where your target color appears
+            target_color = np.array(object_color, dtype=np.uint8)
+            mask = np.all(rgb == target_color, axis=-1).astype(np.uint8)  # 1 where color matches
+
+            # # 3. Find the bounding box of that mask
+            # ys, xs = np.where(mask)
+            # if len(xs) == 0:
+            #     raise ValueError("No pixels found with the target color")
+            # x_min, x_max = xs.min(), xs.max()
+            # y_min, y_max = ys.min(), ys.max()
+
+            # # 4. Compute the 4 corners + 4 midpoints
+            # corners   = [(x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max)]
+            # midpoints = [
+            #     ((x_min+x_max)/2, y_min),
+            #     (x_max, (y_min+y_max)/2),
+            #     ((x_min+x_max)/2, y_max),
+            #     (x_min, (y_min+y_max)/2)
+            # ]
+            # points = corners + midpoints
+
+            # 3. Find non-zero points
+            pts = cv2.findNonZero(mask)
+            if pts is None:
+                #raise ValueError("No pixels found with the target color")
+                continue
+            pts = pts.reshape(-1, 2)
+
+            # 4. Compute minimal-area (rotated) bounding rectangle
+            rect = cv2.minAreaRect(pts)           # ((cx, cy), (w, h), angle)
+            box = cv2.boxPoints(rect)            # 4 corners in float32
+            box = np.array(box, dtype=np.float32)
+
+            # 5. Order box points: top-left, top-right, bottom-right, bottom-left
+            s = box.sum(axis=1)
+            diff = np.diff(box, axis=1).reshape(-1)
+            ordered_box = np.zeros((4, 2), dtype=np.float32)
+            ordered_box[0] = box[np.argmin(s)]
+            ordered_box[2] = box[np.argmax(s)]
+            ordered_box[1] = box[np.argmin(diff)]
+            ordered_box[3] = box[np.argmax(diff)]
+
+            # 6. Build 8 points: 4 corners + 4 midpoints of each edge
+            points = []
+            for i in range(4):
+                p1 = ordered_box[i]
+                p2 = ordered_box[(i + 1) % 4]
+                points.append((float(p1[0]), float(p1[1])))
+                mid = ((p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0)
+                points.append((float(mid[0]), float(mid[1])))
+
+            # 5. Flatten to COCO polygon format: [x1,y1, x2,y2, …, x8,y8]
+            #    Note: COCO expects floats or ints here
+            segmentation = [int(coord) for pt in points for coord in pt]
+
+            # 6. Convert polygon to RLE
+            height, width = mask.shape
+            rle = maskUtils.merge(maskUtils.frPyObjects([segmentation], height, width))
+            rle["counts"] = rle["counts"].decode("ascii")
+            
+
+            data["annotations"][0]["segmentation"]["counts"] = rle["counts"]
+
+            new_data = data
+
+        
+            #sam2_annotations.append(sam2_annotation)
+            output_json_path = os.path.join(output_dir, file_name.replace('.jpg', '.json')) #json_file.replace('.json', '_rgb.json'))
+            # Save the converted annotations
+            with open(output_json_path, 'w') as f:
+                json.dump(new_data, f)
+
+print("Generation completed!")
+

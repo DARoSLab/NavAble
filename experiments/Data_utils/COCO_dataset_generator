@@ -1,0 +1,90 @@
+import os
+import json
+
+dir = r"D:\GuideDog Data\Synthetic Data\Set 5\coco_annotations\val"
+output_file = "_annotations.coco.json"
+
+# Fixed class ID if there's only one class (e.g., "crosswalk" or "tactile paving")
+CLASS_ID = 0
+
+info = {
+        "year": "2025",
+        "version": "1",
+        "description": "Coco dataset for tactile-pavings",
+        "contributor": "",
+        "url": "https://drive.google.com/drive/folders/1n8GCWQ4OklV8DJVpV_Y5RamD45Tf3jwb?usp=sharing",
+        "date_created": "2025-06-07T11:02:25+00:00"
+    }
+
+licenses= [
+        {
+            "id": 1,
+            "url": "https://choosealicense.com/licenses/mit/",
+            "name": "MIT"
+        }
+    ]
+
+images = []
+annotations = []
+categories= [{
+            "id": CLASS_ID,
+            "name": "tactile-block",
+            "supercategory": "tactile"
+        }]
+
+i= 0
+for filename in os.listdir(dir):
+    if not filename.endswith(".json"):
+        continue
+
+    with open(os.path.join(dir, filename), 'r') as f:
+        data = json.load(f)
+
+    image_info = data["image"]
+    annotation_info = data["annotations"]
+
+    img = {
+        "id": i, # image_info["image_id"],
+        "license": 1,
+        "file_name": filename.replace('json','jpg'),
+        "height": 1024,
+        "width": 1024,
+        "date_captured": "2025-03-15T11:02:25+00:00",
+        "extra": {
+            "name": filename.replace('json','jpg')
+        }
+    }
+    images.append(img)
+
+    x_min, y_min, width, height = annotation_info[0]["bbox"]
+    area = annotation_info[0]["area"]
+    ann = {
+        "id": i,
+        "image_id": i, # image_info["image_id"],
+        "category_id": CLASS_ID,
+        "bbox": [
+            x_min,
+            y_min,
+            width,
+            height
+        ],
+        "area": area,
+        "segmentation": [],
+        "iscrowd": 0
+    }
+    annotations.append(ann)
+
+    i+=1
+
+coco_dict = {
+    "info": info,
+    "licenses": licenses,
+    "categories": categories,
+    "images": images,
+    "annotations": annotations}
+
+path = os.path.join(dir, output_file)
+with open(path, 'w') as f:
+    json.dump(coco_dict, f)
+
+print(f"  → Wrote {len(coco_dict['images'])} images to {path}")

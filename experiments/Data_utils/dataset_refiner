@@ -1,0 +1,34 @@
+import os
+import shutil
+import glob
+
+src_dir = r"D:\GuideDog Data\Synthetic Data\Set 4\SAM2_Dataset"
+target_dir = r"D:\GuideDog Data\Synthetic Data\Set 5\SAM2.1_Dataset_refined"
+
+# pattern = os.path.join(src_dir, "*.jpg")
+# for src_path in glob.glob(pattern):
+#     fname = os.path.basename(src_path)
+#     dst_path = os.path.join(dst_dir, fname)
+#     shutil.copy(src_path, dst_path)
+
+for label_filename in os.listdir(target_dir):
+    if not label_filename.lower().endswith(".json"):
+        continue
+
+    # Strip off “.json” to get the base name
+    base_name = os.path.splitext(label_filename)[0]
+
+    # Try each possible image extension
+    found_any = False
+    # for ext in IMAGE_EXTENSIONS:
+    src_img_path = os.path.join(src_dir, base_name + ".jpg")
+    if os.path.isfile(src_img_path):
+        dst_img_path = os.path.join(target_dir, base_name + ".jpg")
+        shutil.copy(src_img_path, dst_img_path)
+        found_any = True
+        # If you know there’s only one extension per base name, you can break here:
+        # break
+
+    if not found_any:
+        # If no matching “base_name + ext” was found, you can print a warning or skip silently
+        print(f"Warning: No image found for label `{label_filename}` (looked for `{base_name}`).")
