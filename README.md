@@ -161,8 +161,8 @@ Custom BLV segmentation pipeline built on MMSegmentation, evaluating three archi
 |--------|---------------|-------------|
 | **A** | `real_final` (3,703 images) | Real data only |
 | **B** | `real_final` + `opensrc_final` (~40K) | Real + open-source curated |
-| **C** | `real_final` ×6 + `synth_0.1` (~42K) | Real (oversampled) + synthetic |
-| **D** | `real_final` ×12 + `synth_0.2` (~85K) | Real (oversampled) + more synthetic |
+| **C** | `real_final` + `synth` | Real + synthetic |
+| **D** | `real_final` + `synth` (larger) | Real + more synthetic |
 
 #### Custom Components
 
@@ -324,7 +324,7 @@ python tools/train.py configs/navable/realsyn/deeplabv3plus.py
 
 Foreground mIoU (fg_mIoU) on `real_final/test` (1,482 images, turnstile excluded):
 
-| Architecture | A · Real Only | B · +Open-Source | C · +Synth₀.₁ | D · +Synth₀.₂ |
+| Architecture | A · Real Only | B · +Open-Source | C · +Synth | D · +Synth (larger) |
 |:-------------|:-------------:|:----------------:|:--------------:|:--------------:|
 | SegFormer    | 48.52         | 48.01            | 56.39          | **58.35**      |
 | Mask2Former  | 68.10         | 66.57            | 72.46          | **72.64**      |

@@ -21,11 +21,7 @@ data/
     img_dir/train/         (~40K images)
     ann_dir/train/
 
-  synth_0.1/               Synthetic subset (~20K images, Isaac Sim)
-    img_dir/train/
-    ann_dir/train/
-
-  synth_0.2/               Larger synthetic subset (~41K images, Isaac Sim)
+  synth/                   Synthetic data (Isaac Sim)
     img_dir/train/
     ann_dir/train/
 ```
@@ -71,8 +67,7 @@ python tools/blv/preprocess_synthetic.py \
 
 python tools/blv/split_synthetic_dataset.py \
     --src data/synth_raw \
-    --dst data/synth_0.1 \
-    --fraction 0.1
+    --dst data/synth
 ```
 
 ## Dataset Statistics
@@ -83,5 +78,5 @@ python tools/blv/split_synthetic_dataset.py \
 | Val   | 396   | — | 17,617 |
 | Test  | 1,482 | — | 34,711 |
 
-`synth_0.1` and `synth_0.2` are 10% and 22% random subsets of the full
-synthetic training split, respectively.
+The synthetic subsets used in training are random samples drawn from the
+full synthetic training split.

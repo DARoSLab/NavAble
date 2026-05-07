@@ -84,8 +84,8 @@ Four data sources are used across the four experimental configurations:
 | ------ | ------------------------------------- |
 | A      | `real_final` only (3,703 images)      |
 | B      | `real_final` + `opensrc_final` (~40K) |
-| C      | `real_final` ×6 + `synth_0.1` (~42K)  |
-| D      | `real_final` ×12 + `synth_0.2` (~85K) |
+| C      | `real_final` + `synth`                 |
+| D      | `real_final` + `synth` (larger)        |
 
 After placing datasets under `data/`, set:
 
@@ -211,7 +211,7 @@ val tables across all 12 model × data configurations.
 
 Summary (fg_mIoU on `real_final/test`, 1,482 images, turnstile excluded):
 
-| Architecture | A · Real | B · +Opensrc | C · +Synth₀.₁ | D · +Synth₀.₂ |
+| Architecture | A · Real | B · +Opensrc | C · +Synth | D · +Synth (larger) |
 | ------------ |:--------:|:------------:|:-------------:|:-------------:|
 | SegFormer    | 48.52    | 48.01        | 56.39         | **58.35**     |
 | Mask2Former  | 68.10    | 66.57        | 72.46         | **72.64**     |
