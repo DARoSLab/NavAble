@@ -1,8 +1,0 @@
-torch>=2.0
-mmengine>=0.10.0
-mmcv>=2.0.0
-mmsegmentation>=1.0.0
-mmdet>=3.0.0
-opencv-python
-numpy
-prettytable

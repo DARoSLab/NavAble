@@ -2,16 +2,13 @@
 
 ## Overview
 
-This repository provides training and evaluation pipelines for semantic segmentation on the **NAVable** dataset using [MMSegmentation](https://github.com/open-mmlab/mmsegmentation).
+This project provides training and evaluation pipelines for semantic segmentation using MMSegmentation.
 
-**Contents:**
-
-| Component                            | Description                                                      |
-| ------------------------------------ | ---------------------------------------------------------------- |
-| `mmseg/datasets/my_mmseg_dataset.py` | Custom dataset class for 12-class NAVable segmentation           |
-| `mmseg/evaluation/fg_iou_metric.py`  | Custom metric: mIoU + foreground-only mIoU (`fg_mIoU`)           |
-| `configs/navable/`                   | Training configs for 4 models × 6 dataset settings               |
-| `data_processing/`                   | Scripts to convert raw data (real + synthetic) into MMSeg format |
+It includes:
+- Custom dataset (`MyMMSegDataset`)
+- Custom metric (`FgIoUMetric`)
+- Multiple experiment settings (real / synthetic / curated)
+- Multiple model architectures (EncNet, DeepLabV3+, Mask2Former, SegFormer)
 
 ---
 
@@ -24,7 +21,7 @@ git clone https://github.com/open-mmlab/mmsegmentation.git
 cd mmsegmentation
 ```
 
-### 1.2 Create Environment
+### 1.2 Environment
 
 ```bash
 conda create -n mmseg python=3.10 -y
@@ -34,54 +31,39 @@ pip install -U openmim
 mim install mmengine
 mim install "mmcv>=2.0.0"
 pip install -e .
-
-# Additional dependencies
-pip install -r /path/to/this/repo/requirements.txt
 ```
-
-### 1.3 Tested Environment
-
-| Package        | Version                            |
-| -------------- | ---------------------------------- |
-| Python         | 3.10                               |
-| PyTorch        | 2.x                                |
-| CUDA           | 12.x                               |
-| MMEngine       | ≥ 0.10.0                           |
-| MMCV           | ≥ 2.0.0                            |
-| MMSegmentation | ≥ 1.0.0                            |
-| MMDetection    | ≥ 3.0.0 (required for Mask2Former) |
 
 ---
 
-## 2. File Placement
+## 2. Add Project Files
 
-Copy the provided files into your MMSegmentation installation:
+Place files into MMSegmentation:
 
 ```
 mmsegmentation/
 ├── mmseg/
 │   ├── datasets/
-│   │   └── my_mmseg_dataset.py          ← copy from mmseg/datasets/
+│   │   └── my_mmseg_dataset.py
 │   └── evaluation/
-│       └── fg_iou_metric.py             ← copy from mmseg/evaluation/
+│       └── fg_iou_metric.py
 │
-└── configs/
-    └── navable/
-        ├── real/                         ← copy from configs/navable/
-        ├── real_only/
-        ├── realsyn/
-        ├── realsyn_nocur/
-        ├── realsyn_nocur_partial/
-        └── realsyn_partial/
+├── configs/
+│   └── my_models/
+│       └── [project_name]/
+│           ├── real/
+│           ├── real_only/
+│           ├── realsyn/
+│           ├── realsyn_nocur/
+│           └── realsyn_nocur_partial/
 ```
 
-> **Note:** The directory structure of this repository mirrors the MMSegmentation layout, so you can simply copy the `mmseg/` and `configs/` directories into your MMSegmentation clone.
+Important:
+- `my_mmseg_dataset.py` → `mmseg/datasets/`
+- `fg_iou_metric.py` → `mmseg/evaluation/`
 
 ---
 
 ## 3. Dataset Format
-
-Prepare your data in the following MMSeg-compatible structure:
 
 ```
 DATA_ROOT/
@@ -96,111 +78,101 @@ DATA_ROOT/
 └── meta.json
 ```
 
-See `data_processing/README.md` for scripts to convert raw data into this format.
+### Classes
 
-### Class Taxonomy (12 classes)
-
-| ID  | Class Name        |
-| --- | ----------------- |
-| 0   | background        |
-| 1   | elevator          |
-| 2   | elevator_button   |
-| 3   | door_button       |
-| 4   | crosswalk         |
-| 5   | pedestrian_signal |
-| 6   | aps_button        |
-| 7   | bus_stop          |
-| 8   | bus_stop_sign     |
-| 9   | handrail          |
-| 10  | escalator         |
-| 11  | turnstile         |
+```
+background
+elevator
+elevator_button
+door_button
+crosswalk
+pedestrian_signal
+aps_button
+bus_stop
+bus_stop_sign
+handrail
+escalator
+turnstile
+```
 
 ---
 
-## 4. Configuration
+## 4. Config Structure
 
-Each config combines a **dataset setting** with a **model architecture**.
+Each config = (dataset setting) + (model)
 
-### Dataset Settings
+### Dataset settings
 
-| Setting                 | Description                                |
-| ----------------------- | ------------------------------------------ |
-| `real_only`             | Real dataset only                          |
-| `real`                  | Real + curated synthetic                   |
-| `realsyn`               | Real + full synthetic                      |
-| `realsyn_nocur`         | Real + synthetic (without curation)        |
-| `realsyn_partial`       | Real + curated synthetic (subset)          |
-| `realsyn_nocur_partial` | Real + synthetic without curation (subset) |
+| Folder | Description |
+|--------|------------|
+| real_only | real dataset only |
+| real | real + curated |
+| realsyn | real + synthetic |
+| realsyn_nocur | synthetic without curation |
+| *_partial | subset experiments |
 
-### Model Architectures
+### Models
 
-| Model       | Config Base                   |
-| ----------- | ----------------------------- |
-| DeepLabV3+  | ResNet-101-D8, crop 512×512   |
-| EncNet      | ResNet-101-D8, crop 512×512   |
-| Mask2Former | Swin-L (IN-22K), crop 640×640 |
-| SegFormer   | MiT-B5, crop 640×640          |
+- deeplabv3plus
+- encnet
+- mask2former
+- segformer
 
-### ⚠️ IMPORTANT: Update Data Paths Before Training
+---
 
-Edit the `data_roots` and `data_root` fields in your config:
+## 5. IMPORTANT: Modify Data Paths
+
+Before training, edit config:
 
 ```python
 data_roots = [
-    '/absolute/path/to/real_mmseg_data',
-    '/absolute/path/to/synthetic_mmseg_data',
+    'PATH_TO_REAL_DATA',
+    'PATH_TO_CURATED_OR_SYN_DATA',
 ]
 ```
 
-Validation and test dataloaders also require updating `data_root`:
-
-```python
-data_root='PATH_TO_REAL_TEST_DATA',  # ← change this
-```
+❗ This must be changed. Hardcoded paths will not work.
 
 ---
 
-## 5. Training
+## 6. Training
+
+Example:
 
 ```bash
-# Single GPU
-python tools/train.py configs/navable/realsyn/encnet.py
-
-# Multi-GPU (e.g., 4 GPUs)
-bash tools/dist_train.sh configs/navable/realsyn/encnet.py 4
+python tools/train.py \
+configs/my_models/[project_name]/realsyn/encnet.py
 ```
 
 ---
 
-## 6. Evaluation
+## 7. Evaluation
 
 ```bash
-# Evaluate with best checkpoint
 python tools/test.py \
-    configs/navable/realsyn/encnet.py \
-    work_dirs/navable_realsyn_encnet/best_fg_mIoU_*.pth
+configs/my_models/[project_name]/realsyn/encnet.py \
+work_dirs/.../best.pth
+```
 
-# Save predictions
+Save predictions:
+
+```bash
 python tools/test.py \
-    configs/navable/realsyn/encnet.py \
-    checkpoint.pth \
-    --out results.pkl
+configs/... \
+checkpoint.pth \
+--out results.pkl
 ```
 
 ---
 
-## 7. Metrics
+## 8. Metrics
 
-We use a custom `FgIoUMetric` that reports:
+We use custom metric:
 
-| Metric       | Description                                                  |
-| ------------ | ------------------------------------------------------------ |
-| `mIoU`       | Mean IoU over all 12 classes                                 |
-| `fg_mIoU`    | Mean IoU over foreground classes only (excluding background) |
-| `mFscore`    | Mean F-score over all classes                                |
-| `fg_mFscore` | Mean F-score over foreground classes only                    |
+- mIoU (all classes)
+- fg_mIoU (excluding background)
 
-Best model selection is based on `fg_mIoU`:
+Best model selection:
 
 ```python
 save_best = 'fg_mIoU'
@@ -208,36 +180,52 @@ save_best = 'fg_mIoU'
 
 ---
 
-## 8. Notes
+## 9. Notes on EncNet (Important)
 
-### EncNet Behavior
+EncNet may collapse rare classes when mixing datasets.
 
-EncNet may collapse rare classes when mixing real and synthetic datasets:
-
+Observed behavior:
 - Some classes (e.g., `bus_stop`) may have 0 predictions
-- The model may default to predicting background
+- Model predicts background instead
 
-**Recommendations:**
-
+Recommendation:
 - Check per-class prediction distribution
-- Monitor class imbalance across datasets
-- Inspect GT vs. prediction overlap
-
-### Troubleshooting
-
-| Issue                            | Possible Causes                                            |
-| -------------------------------- | ---------------------------------------------------------- |
-| Class IoU = 0                    | No predictions for that class; class imbalance; domain gap |
-| Model predicts mostly background | Adjust `class_weight`; verify dataset distribution         |
+- Inspect GT vs prediction overlap
+- Monitor class imbalance
 
 ---
 
-## 9. Acknowledgement
+## 10. Troubleshooting
 
-Built on top of [MMSegmentation](https://github.com/open-mmlab/mmsegmentation).
+### Class IoU = 0
+
+Possible reasons:
+- No predictions for that class
+- Severe class imbalance
+- Domain gap (real vs synthetic)
+- Small object size
+
+### Model predicts mostly background
+
+- Check `class_weight`
+- Verify dataset distribution
+- Visualize predictions
 
 ---
 
-## License
+## 11. Reproducibility Notes
 
-This project is released under the [MIT License](LICENSE).
+Environment:
+
+- Python 3.10
+- PyTorch 2.x
+- CUDA 12.x
+- MMEngine 0.10.x
+- MMCV >= 2.0
+
+---
+
+## 12. Acknowledgement
+
+Built on top of MMSegmentation:  
+https://github.com/open-mmlab/mmsegmentation

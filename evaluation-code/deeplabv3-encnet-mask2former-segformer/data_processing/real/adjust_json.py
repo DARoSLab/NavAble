@@ -71,7 +71,7 @@ def main():
     ap.add_argument(
         "--inplace",
         action="store_true",
-        help="Overwrite original files instead of creating *_adjusted.json",
+        help="(Basic-> *_adjusted.json generate)",
     )
     args = ap.parse_args()
 
