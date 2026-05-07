@@ -1,0 +1,163 @@
+pipeline:
+  name: "navable"
+  version: "2.2"
+
+target_classes:
+  - "Accessible Pedestrian Signal Button"
+  - "Bus Stop Sign"
+  - "Door Button"
+  - "Elevator"
+  - "Elevator Button"
+  - "Escalator"
+  - "Handrail"
+  - "Pedestrian Signal"
+  - "Turnstile"
+
+crawling:
+  enabled: true
+  strategy: "wikimedia"
+  num_per_class: 250
+  data_dir: "data/input"
+
+  multi:
+    backends: ["bing", "wikimedia"]
+
+  bing:
+    min_size: 300
+    threads: 4
+
+  wikimedia:
+    delay: 1.5
+    max_retries: 3
+
+  duckduckgo:
+    delay: 1.0
+    max_retries: 3
+
+validation:
+  enabled: true
+  strategy: "gemini"
+
+  prompt:
+    default: "Does this image contain a '{class_name}'?"
+    class_prompts:
+      "Accessible Pedestrian Signal Button": |
+        Does this image show a real, physical Accessible Pedestrian Signal (APS) button unit as the primary subject?
+        ACCEPT: Full, modern crosswalk button units mounted on poles, clearly showing the tactile push-button, the mechanical housing, AND the attached instructional signage plate.
+        REJECT: Standard/legacy metal crosswalk buttons without accessibility features, generic push buttons, pedestrian crossing signs that lack the physical button interface, or macro close-ups where only the button itself is visible and the signage/housing is cut off.
+        The entire button unit and its signage must be in focus, clearly visible, and not blocked by hands or pedestrians.
+
+      "Bus Stop Sign": |
+        Does this image show a physical, freestanding or pole-mounted bus stop sign as the primary subject?
+        ACCEPT: Real-world physical signs that indicate a bus stop location (often a metal pole with a transit logo or route numbers).
+        REJECT: Close-ups of paper timetables, digital UI screens, flat vector icons, illustrations, or wide street shots where the sign is a tiny background element.
+        The sign must be clearly visible, in focus, and mostly unoccluded.
+
+      "Escalator": |
+        Does this image show a real, physical escalator as the primary subject?
+        ACCEPT: Clear views of the stepped structure and handrails of a mechanical escalator.
+        REJECT: Flat moving walkways (travelators), tightly cropped close-ups of just the comb plate or a single step, diagrams, illustrations, or escalators so crowded with people that the structural geometry is completely hidden.
+        The escalator's steps and incline must be clearly visible.
+
+      "Handrail": |
+        Does this image show a real, physical handrail as the primary subject, located in a public space (like a transit station, mall, or airport)?
+        ACCEPT: Structural handrails attached to walls, ramps, or stairs, clearly showing the continuous rail and its mounting.
+        REJECT: Bathroom grab bars, temporary stanchions/rope barriers, extreme close-ups of a hand gripping a rail, or architectural CAD drawings.
+        The handrail must be in a real-world setting, unobstructed, and clearly distinguishable from the background.
+
+      "Turnstile": |
+        Does this image show a real, physical full-height turnstile or revolving door as the primary subject?
+        ACCEPT: Full-height security turnstiles (floor-to-ceiling rotating steel bars) or large revolving doors at building entrances.
+        REJECT: Waist-high subway turnstiles, tripod/three-arm turnstiles, paddle/flap barriers, or optical turnstiles used for basic ticket scanning.
+        REJECT illustrations and diagrams. The full structure of the revolving door or full-height rotor must be clearly visible and not blocked by crowds.
+
+  gemini:
+    model: "gemini-3-flash-preview"
+    api_key_env: "GEMINI_API_KEY"
+
+masking:
+  strategy: "grounded_sam2"
+  device: "cuda"
+
+  sam_heuristic:
+    checkpoint: "extern/sam-3d-objects/checkpoints/sam_vit_h_4b8939.pth"
+    model_type: "vit_h"
+    points_per_side: 32
+    pred_iou_thresh: 0.88
+    stability_score_thresh: 0.95
+    min_mask_region_area: 500
+    coverage_range: [0.05, 0.70]
+    preferred_coverage: 0.30
+    center_weight: 0.6
+    size_weight: 0.4
+
+  grounded_sam2:
+    grounding_model: "IDEA-Research/grounding-dino-base"
+    sam2_checkpoint: "extern/Grounded-SAM-2/checkpoints/sam2.1_hiera_large.pt"
+    sam2_model_cfg: "configs/sam2.1/sam2.1_hiera_l.yaml"
+    box_threshold: 0.3
+    text_threshold: 0.25
+    nms_threshold: 0.8
+
+    class_prompts:
+      "Escalator":
+        - "escalator"
+        - "escalator steps"
+        - "escalator balustrade"
+        - "escalator handrail"
+        - "moving staircase"
+
+      "Handrail":
+        - "handrail"
+        - "stair railing"
+        - "guard rail"
+        - "handrail mount"
+
+      "Bus Stop Sign":
+        - "bus stop sign"
+        - "bus stop pole"
+        - "transit sign"
+
+      "Accessible Pedestrian Signal Button":
+        - "pedestrian signal button"
+        - "crosswalk push button"
+        - "aps button housing"
+        - "accessible pedestrian signal"
+
+      "Turnstile":
+        - "turnstile"
+        - "full height turnstile"
+        - "revolving door"
+
+reconstruction:
+  strategy: "sam3d"
+  seed: 42
+
+  sam3d:
+    sam3d_path: "extern/sam-3d-objects"
+    config_path: "extern/sam-3d-objects/checkpoints/hf/pipeline.yaml"
+    compile: false
+
+conversion:
+  output_formats: ["glb", "ply", "usdz"]
+
+  glb_to_usd:
+    scale: 1.0
+    up_axis: "Z"
+    output_usdz: true
+
+  ply_to_usd:
+    scale: 1.0
+    up_axis: "Z"
+    alpha_shape_alpha: 0.03
+
+output:
+  base_dir: "output"
+  save_masks: true
+  save_original: true
+
+batch:
+  max_workers: 2
+  retry_on_failure: true
+  max_retries: 3
+  checkpoint_interval: 10

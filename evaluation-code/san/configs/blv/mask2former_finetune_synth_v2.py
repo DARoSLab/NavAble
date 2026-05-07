@@ -1,0 +1,188 @@
+"""Mask2Former Stage-2A: synthetic-only pretrain on full V2 synth dataset.
+
+Train/Val/Test all from data/synthetic_v2 (V2 12-class schema).
+BLVDatasetV2Fg applies reduce_zero_label: bg(0)→255 ignore, fg(1..11)→0..10.
+Init from ImageNet/ADE pretrained weights (NOT from Stage-1 finetuned ckpt).
+"""
+
+crop_size = (640, 640)
+
+_base_ = [
+    '../../checkpoints/mask2former_swin-l-in22k-384x384-pre_8xb2-160k_ade20k-640x640.py',
+]
+
+import os as _os
+
+custom_imports = dict(
+    imports=[
+        'blv_pipeline.mmseg_plugins.datasets.blv_dataset',
+        'blv_pipeline.mmseg_plugins.evaluation.blv_metric',
+        'blv_pipeline.mmseg_plugins.decode_heads.blv_mask2former_head',
+    ],
+    allow_failed_imports=False,
+)
+
+default_scope = 'mmseg'
+dataset_type = 'BLVDatasetV2Fg'
+_blv_root = _os.environ['BLV_PROJECT_ROOT'] if 'BLV_PROJECT_ROOT' in _os.environ else _os.path.abspath(_os.path.join(_os.getcwd(), '..', '..'))
+synth_root = _os.path.join(_blv_root, 'data', 'synthetic_v2')
+
+NUM_FG = 11
+
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations'),
+    dict(type='RandomResize', scale=(1280, 640), ratio_range=(0.5, 2.0), keep_ratio=True),
+    dict(type='RandomCrop', crop_size=crop_size, cat_max_ratio=0.75),
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='PhotoMetricDistortion'),
+    dict(type='PackSegInputs'),
+]
+
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='Resize', scale=(640, 640), keep_ratio=True),
+    dict(type='LoadAnnotations'),
+    dict(type='PackSegInputs'),
+]
+
+train_dataloader = dict(
+    _delete_=True,
+    batch_size=4,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='InfiniteSampler', shuffle=True),
+    dataset=dict(
+        type=dataset_type,
+        data_root=synth_root,
+        data_prefix=dict(img_path='img_dir/train', seg_map_path='ann_dir/train'),
+        pipeline=train_pipeline,
+    ),
+)
+
+val_dataloader = dict(
+    _delete_=True,
+    batch_size=1,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
+        type=dataset_type,
+        data_root=synth_root,
+        data_prefix=dict(img_path='img_dir/val', seg_map_path='ann_dir/val'),
+        pipeline=test_pipeline,
+    ),
+)
+
+test_dataloader = dict(
+    _delete_=True,
+    batch_size=1,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
+        type=dataset_type,
+        data_root=synth_root,
+        data_prefix=dict(img_path='img_dir/test', seg_map_path='ann_dir/test'),
+        pipeline=test_pipeline,
+    ),
+)
+
+val_evaluator = dict(
+    _delete_=True,
+    type='BLVMetric',
+    iou_metrics=['mIoU', 'mAP50-95', 'Prec', 'Rec'],
+    zero_shot_remap=False,
+    num_classes=NUM_FG,
+    mask_fg_conf_threshold=0.0,
+    ignore_index=255,
+    output_metrics_path=None,
+)
+
+test_evaluator = dict(
+    _delete_=True,
+    type='BLVMetric',
+    iou_metrics=['mIoU', 'mAP50-95', 'Prec', 'Rec'],
+    zero_shot_remap=False,
+    num_classes=NUM_FG,
+    mask_fg_conf_threshold=0.0,
+    ignore_index=255,
+    output_metrics_path=None,
+)
+
+optim_wrapper = dict(
+    _delete_=True,
+    type='AmpOptimWrapper',
+    optimizer=dict(type='AdamW', lr=1e-5, weight_decay=0.05),
+    clip_grad=dict(max_norm=0.01, norm_type=2),
+    paramwise_cfg=dict(
+        custom_keys={
+            'backbone': dict(lr_mult=0.1),
+            'query_feat': dict(decay_mult=0.0),
+            'query_embed': dict(decay_mult=0.0),
+            'level_embed': dict(decay_mult=0.0),
+        },
+        norm_decay_mult=0.0,
+    ),
+)
+
+# 70k iters @ batch=4 ≈ 1.55 epochs over 180,886 train images.
+param_scheduler = [
+    dict(type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=500),
+    dict(type='PolyLR', power=0.9, by_epoch=False, begin=500, end=70000, eta_min=0.0),
+]
+
+train_cfg = dict(type='IterBasedTrainLoop', max_iters=70000, val_begin=5000, val_interval=5000)
+val_cfg = dict(type='ValLoop')
+test_cfg = dict(type='TestLoop')
+log_processor = dict(by_epoch=False)
+
+default_hooks = dict(
+    _delete_=True,
+    timer=dict(type='IterTimerHook'),
+    logger=dict(type='LoggerHook', interval=100, log_metric_by_epoch=False),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    checkpoint=dict(
+        type='CheckpointHook',
+        by_epoch=False,
+        interval=5000,
+        save_best='mIoU',
+        rule='greater',
+        max_keep_ckpts=1,
+    ),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    visualization=dict(type='SegVisualizationHook', draw=True, interval=1000),
+)
+
+model = dict(
+    data_preprocessor=dict(size=crop_size),
+    decode_head=dict(
+        type='BLVMask2FormerHead',
+        num_classes=NUM_FG,
+        query_fg_threshold=0.1,
+        bg_threshold=0.5,
+        loss_cls=dict(
+            type='mmdet.CrossEntropyLoss',
+            use_sigmoid=False,
+            loss_weight=2.0,
+            reduction='mean',
+            class_weight=[1.0] * NUM_FG + [0.1],
+        ),
+    ),
+)
+
+load_from = _os.path.join(_blv_root, 'checkpoints', 'pretrained', 'mask2former_swin-l-in22k-384x384-pre_8xb2-160k_ade20k-640x640.pth')
+
+vis_backends = [
+    dict(type='LocalVisBackend'),
+    dict(
+        type='WandbVisBackend',
+        init_kwargs=dict(
+            project='blv-seg',
+            name='stage-2a-synth-mask2former',
+            tags=['stage-2a', 'synth-pretrain', 'mask2former', 'v2-schema'],
+        ),
+    ),
+]
+
+visualizer = dict(type='SegLocalVisualizer', vis_backends=vis_backends, name='visualizer')

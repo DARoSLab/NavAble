@@ -1,0 +1,15 @@
+# NavAble Object Taxonomy
+# Categories of accessibility objects for blind navigation
+
+version: "1.0"
+
+categories:
+  - Elevator
+  - Elevator Button
+  - Door button
+  - Door
+  - Cross-walk
+  - Traffic-signal
+  - Pedestrian signal
+  - Bus-stop
+  - Bus-stop sign stand

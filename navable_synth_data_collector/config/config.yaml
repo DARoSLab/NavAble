@@ -1,0 +1,60 @@
+# NavAble Synthetic Data Extension — User Configuration
+# ======================================================
+#
+# This file is read by both the GUI (defaults at startup) and the headless
+# CLI (`navable-collect record-all` / `collect-all` / `collect-classes`).
+# Anything set here can still be overridden at runtime through the UI or
+# via CLI flags.
+#
+# Set the three project paths to your own data locations before first run.
+
+# --- Project paths ---
+# Where captured data is written, where USD assets live, where USD environment
+# stages live. Use absolute paths.
+root_folder: "/path/to/collected_data"
+asset_root_folder: "/path/to/synthetic_objects"
+environments_folder: "/path/to/environments"
+
+# --- Project selection ---
+# For the GUI, leaving these blank is recommended — fill them in via the
+# Project Settings panel and click "Apply Settings".
+# For the CLI `record-all` command, all three are required.
+asset_class_name: ""
+environment: ""
+location: ""
+
+# --- Multi-class CLI ---
+# `navable-collect collect-classes` loops over each class in this list.
+# When empty, it falls back to a single-element list containing
+# `asset_class_name` above. Example:
+#   classes: ["handrail", "stairs", "doorway"]
+classes: []
+
+# --- Camera ---
+camera_path: "/World/Camera"
+move_speed: 20.0
+look_speed: 30.0
+focal_length: 28.0
+
+# --- Rendering ---
+resolution_width: 1280
+resolution_height: 720
+rt_subframes: 4
+frame_step: 1   # capture every Nth trajectory frame
+
+# --- Asset browser ---
+# Assets are scanned at {asset_root_folder}/{asset_class_name}/*.usd*
+parent_prim_path: "/World"
+
+# --- Annotators ---
+# Toggle which annotators the Replicator BasicWriter enables.
+annotators:
+  rgb: true
+  semantic_segmentation: true
+  colorize_semantic_segmentation: true
+  bounding_box_2d_tight: true
+  bounding_box_2d_loose: false
+  bounding_box_3d: false
+  instance_segmentation: false
+  normals: false
+  distance_to_image_plane: false

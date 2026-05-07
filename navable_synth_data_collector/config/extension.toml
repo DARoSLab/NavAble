@@ -1,0 +1,46 @@
+[core]
+reloadable = true
+
+[package]
+version = "1.0.0"
+title = "NavAble Synthetic Data Extension"
+description = "Synthetic data collection tool for accessibility object detection research. Provides gamepad-driven FPS camera control, trajectory recording/playback, Replicator-based multi-modal data capture (RGB, semantic segmentation, bounding boxes), and USD asset browsing with automatic semantic labeling."
+authors = ["Anonymous"]
+category = "Simulation"
+keywords = ["synthetic data", "accessibility", "data collection", "gamepad", "replicator", "isaac sim"]
+readme = "README.md"
+
+# This extension targets Isaac Sim 5.1.0 / Kit 107.3.3
+# Tested with: NVIDIA RTX GPU, Logitech F710 (XInput) gamepad
+
+[[python.module]]
+name = "navable_synth_data_collector"
+
+[dependencies]
+# Core Kit / UI
+"omni.kit.uiapp" = {}
+"omni.ui" = {}
+"omni.usd" = {}
+
+# Viewport interaction
+"omni.kit.viewport.utility" = {}
+
+# Replicator for synthetic data capture
+"omni.replicator.core" = {}
+
+# Isaac Sim core utilities (semantics helpers, etc.)
+"isaacsim.core.api" = {}
+"isaacsim.core.utils" = {}
+
+# ---------- extension-level settings ----------
+# These defaults can be overridden in the user's omniverse config or at runtime.
+[settings]
+exts."navable_synth_data_collector".default_camera_path = "/World/Camera"
+exts."navable_synth_data_collector".default_move_speed = 20.0
+exts."navable_synth_data_collector".default_look_speed = 30.0
+exts."navable_synth_data_collector".default_resolution_width = 1280
+exts."navable_synth_data_collector".default_resolution_height = 720
+exts."navable_synth_data_collector".default_rt_subframes = 4
+exts."navable_synth_data_collector".default_root_folder = "~/navable_data"
+exts."navable_synth_data_collector".default_environment = ""
+exts."navable_synth_data_collector".default_asset_class_name = ""

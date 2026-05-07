@@ -1,0 +1,50 @@
+name: openmmlab
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  # numpy 2.2.x + pandas 2.2.x must be pinned together so their C-ABI is
+  # consistent.  numpy.dtype size changed ("Expected 96, got 88") is the
+  # runtime symptom when pandas is built against numpy 1.x but numpy 2.x is
+  # present.  Pin both in the conda section AND repeat pandas in the pip
+  # section so that transitive pip dependencies (e.g. wandb, scipy) never
+  # resolve an older pandas wheel.
+  - numpy>=2.2,<2.3
+  - pandas>=2.2,<2.3
+  - pillow=10.4.0
+  - pip
+  - pip:
+      # PyTorch stack — CUDA 12.1 build (matches Unity L40S / local RTX 4080 / RTX 6000)
+      - torch==2.4.1+cu121 --index-url https://download.pytorch.org/whl/cu121
+      - torchvision==0.19.1+cu121 --index-url https://download.pytorch.org/whl/cu121
+      - torchaudio==2.4.1+cu121 --index-url https://download.pytorch.org/whl/cu121
+      # OpenMMLab stack
+      - mmengine==0.10.7
+      - mmcv==2.1.0
+      - mmdet==3.3.0
+      - mmsegmentation==1.2.2
+      # Data / evaluation
+      - opencv-python==4.13.0.92
+      - pycocotools==2.0.7
+      - scipy==1.10.1
+      # SAN model — CLIP BPE tokenizer requires both packages at module-load time.
+      # mmseg/utils/tokenizer.py: `import ftfy` + `import regex as re`
+      # Both are imported unconditionally, so they must be present even for
+      # non-SAN runs; absence breaks the entire mmseg import chain.
+      - ftfy
+      - regex
+      # pandas pinned here as a second line of defense: pip transitive deps
+      # (wandb, scipy, pycocotools) can silently resolve pandas to 2.0.x which
+      # is built against numpy 1.x and crashes on import with numpy 2.x.
+      # Having an explicit pip pin ensures pip's resolver always lands on 2.2.x
+      # regardless of install order.
+      - pandas>=2.2,<2.3
+      # Logging / metrics
+      - wandb==0.24.2
+      - prettytable==3.11.0
+      - tqdm==4.65.2
+      # Runtime note: train/eval scripts export TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1 for PyTorch 2.6+
+      # checkpoint compatibility with mmengine; no extra pip package required.

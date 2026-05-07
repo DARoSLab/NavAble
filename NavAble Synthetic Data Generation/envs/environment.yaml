@@ -1,0 +1,107 @@
+# NavAble Conda Environment
+# Unified environment for the full pipeline: segmentation, reconstruction, conversion.
+# Targets: Python 3.11, CUDA 12.8, PyTorch 2.7.1, RTX 5090 (Blackwell SM_120).
+#
+# NOTE: PyTorch and all CUDA packages are installed via pip (not conda) to ensure
+# CUDA 12.8 compatibility. The conda env provides Python, GCC, and system libs only.
+#
+# Create: conda env create -f envs/environment.yaml
+# Update: conda env update -f envs/environment.yaml
+# Activate: conda activate isaacnav
+
+name: isaacnav
+channels:
+  - nvidia/label/cuda-12.8.0
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip>=23.0
+
+  # Build tools (needed for compiling pytorch3d, gsplat, grounding_dino CUDA extensions)
+  - gcc=12.4.0
+  - gxx=12.4.0
+  - cmake>=3.24
+  - ninja
+
+  # CUDA 12.8 toolkit (for nvcc -- required to compile custom CUDA extensions with SM_120)
+  - cuda-toolkit=12.8
+
+  # System libs
+  - numpy>=1.21.0
+  - pillow>=9.0.0
+  - requests>=2.28.0
+  - pyyaml>=6.0
+
+  - pip:
+    # -------------------------------------------------------
+    # PyTorch 2.7.1 + CUDA 12.8 (installed via pip, NOT conda)
+    # -------------------------------------------------------
+    - --extra-index-url https://download.pytorch.org/whl/cu128
+    - torch==2.7.1+cu128
+    - torchvision==0.22.1+cu128
+    - torchaudio==2.7.1+cu128
+
+    # CUDA Python bindings
+    - cuda-python==12.8.0
+    - nvidia-cuda-nvcc-cu12==12.8.93
+
+    # NOTE: NavAble editable install is done in install.sh step 5,
+    # not here, to avoid relative path issues during conda env create.
+
+    # -------------------------------------------------------
+    # 3D mesh processing
+    # -------------------------------------------------------
+    - trimesh>=3.21.0
+    - open3d==0.18.0
+    - point-cloud-utils==0.29.5
+    - pymeshfix==0.17.0
+    - xatlas==0.0.9
+    - roma==1.5.1
+
+    # -------------------------------------------------------
+    # SAM (original, for heuristic baseline masking)
+    # -------------------------------------------------------
+    - git+https://github.com/facebookresearch/segment-anything.git
+
+    # -------------------------------------------------------
+    # Grounding DINO + SAM 2 for class-aware segmentation
+    # -------------------------------------------------------
+    - transformers>=4.30.0
+    - supervision>=0.22.0
+
+    # -------------------------------------------------------
+    # Image scoring (CLIP)
+    # -------------------------------------------------------
+    - torchmetrics>=1.0.0
+
+    # -------------------------------------------------------
+    # SAM3D core dependencies
+    # -------------------------------------------------------
+    - hydra-core==1.3.2
+    - hydra-submitit-launcher==1.2.0
+    - lightning==2.3.3
+    - timm==0.9.16
+    - opencv-python==4.9.0.80
+    - einops-exts==0.0.4
+    - fvcore==0.1.5.post20221221
+    - loguru==0.7.2
+    - scikit-image==0.23.1
+    - bitsandbytes==0.49.2
+    - xformers==0.0.31
+    - sentence-transformers==2.6.1
+    - MoGe @ git+https://github.com/microsoft/MoGe.git@a8c37341bc0325ca99b9d57981cc3bb2bd3e255b
+
+    # -------------------------------------------------------
+    # SAM3D inference dependencies
+    # -------------------------------------------------------
+    - seaborn==0.13.2
+
+    # -------------------------------------------------------
+    # SAM3D pytorch3d + flash attention (compiled from source for SM_120)
+    # -------------------------------------------------------
+    - flash_attn==2.8.3
+
+    # USD (standalone -- not needed if using Isaac Sim)
+    # - usd-core>=23.0

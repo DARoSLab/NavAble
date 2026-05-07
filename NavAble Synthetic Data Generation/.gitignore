@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large data files (use Git LFS or exclude)
+*.ply
+*.glb
+*.usd
+*.usda
+*.usdc
+*.usdz
+!examples/*.usd
+
+# Temporary
+*.tmp
+*.bak
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Downloaded checkpoints
+checkpoints/
+*.pth
+*.pt
+*.onnx
+
+# Data and pipeline output
+data/input/
+data/output/
+output/
+
+# Git submodules (tracked via .gitmodules)
+extern/*
+!extern/sam-3d-objects
+!extern/Grounded-SAM-2
+
+# Batch job manifests
+data/jobs/*
+!data/jobs/.gitkeep

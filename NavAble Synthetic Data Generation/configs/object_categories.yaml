@@ -1,0 +1,117 @@
+# NavAble Object Taxonomy
+# Categories of accessibility objects for blind navigation
+
+version: "1.0"
+
+categories:
+  tactile_surfaces:
+    description: "Ground-based tactile navigation aids"
+    subcategories:
+      tactile_paving:
+        description: "Raised patterns on walking surfaces"
+        aliases: ["truncated domes", "tenji blocks", "tactile ground surface indicators"]
+        search_queries:
+          - "tactile paving"
+          - "truncated domes sidewalk"
+          - "detectable warning surface"
+          - "tenji block japan"
+
+      guidance_blocks:
+        description: "Directional tactile strips"
+        aliases: ["directional blocks", "guiding blocks"]
+        search_queries:
+          - "tactile guidance block"
+          - "directional tactile paving"
+
+      hazard_warning:
+        description: "Tactile warnings for hazards"
+        aliases: ["platform edge warning", "stair warning"]
+        search_queries:
+          - "platform edge tactile warning"
+          - "tactile stair warning"
+
+  auditory_signals:
+    description: "Audio-based navigation aids"
+    subcategories:
+      accessible_pedestrian_signal:
+        description: "Audio signals at crosswalks"
+        aliases: ["APS", "audible pedestrian signal", "talking crosswalk"]
+        search_queries:
+          - "accessible pedestrian signal"
+          - "audible crosswalk signal"
+          - "APS pedestrian button"
+
+      talking_sign:
+        description: "Audio information displays"
+        aliases: ["audio sign", "speaking sign"]
+        search_queries:
+          - "talking sign accessibility"
+          - "audio information sign"
+
+  physical_markers:
+    description: "Physical landmarks for navigation"
+    subcategories:
+      bollard:
+        description: "Vertical posts for guidance"
+        aliases: ["post", "stanchion"]
+        search_queries:
+          - "accessible bollard"
+          - "tactile bollard"
+
+      handrail:
+        description: "Graspable rails for guidance"
+        aliases: ["railing", "grab bar"]
+        search_queries:
+          - "accessible handrail"
+          - "stair handrail"
+
+      curb_cut:
+        description: "Ramped access from sidewalk to street"
+        aliases: ["curb ramp", "dropped curb"]
+        search_queries:
+          - "curb cut ramp"
+          - "accessible curb ramp"
+
+      ramp:
+        description: "Inclined access surfaces"
+        aliases: ["wheelchair ramp", "access ramp"]
+        search_queries:
+          - "accessible ramp"
+          - "wheelchair ramp entrance"
+
+  signage:
+    description: "Information access points"
+    subcategories:
+      braille_sign:
+        description: "Signs with Braille text"
+        aliases: ["tactile sign"]
+        search_queries:
+          - "braille sign"
+          - "tactile braille signage"
+
+      tactile_map:
+        description: "Raised maps for orientation"
+        aliases: ["touch map", "relief map"]
+        search_queries:
+          - "tactile map accessibility"
+          - "raised relief map"
+
+      high_contrast_marker:
+        description: "Visual markers for low vision"
+        aliases: ["contrast stripe", "visibility marker"]
+        search_queries:
+          - "high contrast accessibility marker"
+          - "low vision contrast stripe"
+
+# Metadata schema for each asset
+asset_metadata_schema:
+  required:
+    - category
+    - subcategory
+    - source_license
+    - mesh_format
+  optional:
+    - dimensions_meters
+    - recommended_scale
+    - material_type
+    - region  # geographic region where this type is common

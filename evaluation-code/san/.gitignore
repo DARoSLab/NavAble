@@ -1,0 +1,57 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -----------------------------------------------------------------------
+# Checkpoints — *.pth files are never committed (too large).
+# Keep directory structure with .gitkeep files.
+# -----------------------------------------------------------------------
+/checkpoints/*.pth
+/checkpoints/pretrained/*.pth
+/checkpoints/finetuned/**/*.pth
+
+# -----------------------------------------------------------------------
+# Processed datasets — gitignored; must be regenerated via preprocess_*.py
+# or re-uploaded on each machine.
+# Keep .gitkeep so the directory is tracked.
+# -----------------------------------------------------------------------
+/data/real/*
+!/data/real/.gitkeep
+/data/synthetic/*
+!/data/synthetic/.gitkeep
+
+# Legacy processed dataset path (kept for backward compatibility)
+/data/blv_dataset/*
+!/data/blv_dataset/.gitkeep
+
+# -----------------------------------------------------------------------
+# Training artifacts — work_dirs is fully ignored.
+# Smoke-test and full-run outputs are temporary; see README "What is safe
+# to delete" section.
+# -----------------------------------------------------------------------
+/work_dirs/
+
+# -----------------------------------------------------------------------
+# Evaluation and benchmark outputs
+# -----------------------------------------------------------------------
+/logs/
+/wandb/
+
+# -----------------------------------------------------------------------
+# Log files
+# -----------------------------------------------------------------------
+*.log
+*.out
+*.err
